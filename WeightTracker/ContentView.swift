@@ -18,15 +18,56 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
+            VStack(spacing: 0) {
                 // Header
                 Text("Weight Tracker")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .padding(.top, 20)
+                    .padding(.bottom, 30)
+                
+                // Current Weight Input - Large prominent section
+                VStack(spacing: 20) {
+                    Text("Today's Weight")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    
+                    HStack(spacing: 15) {
+                        TextField("Enter weight", text: $currentWeight)
+                            .keyboardType(.decimalPad)
+                            .font(.title)
+                            .multilineTextAlignment(.center)
+                            .padding(.vertical, 15)
+                            .padding(.horizontal, 20)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(12)
+                        
+                        Text("kg")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Button(action: saveWeight) {
+                        Text("Save Weight")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 15)
+                            .background(currentWeight.isEmpty ? Color.gray : Color.blue)
+                            .cornerRadius(12)
+                    }
+                    .disabled(currentWeight.isEmpty)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 30)
+                .background(Color.blue.opacity(0.05))
+                .cornerRadius(16)
+                .padding(.horizontal)
                 
                 // Weekly Averages
                 VStack(spacing: 12) {
-                    HStack(spacing: 20) {
+                    HStack(spacing: 15) {
                         VStack {
                             Text("This Week")
                                 .font(.caption)
@@ -67,41 +108,14 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal)
-                
-                // Current Weight Input
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Today's Weight")
-                        .font(.headline)
-                    
-                    HStack {
-                        TextField("Enter weight", text: $currentWeight)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                        
-                        Text("kg")
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Save Button
-                Button(action: saveWeight) {
-                    Text("Save Weight")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-                .padding(.horizontal)
-                .disabled(currentWeight.isEmpty)
+                .padding(.top, 20)
                 
                 // Recent Weights List
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Recent Entries")
                         .font(.headline)
                         .padding(.horizontal)
+                        .padding(.top, 20)
                     
                     if recentWeights.isEmpty {
                         Text("No entries yet")
@@ -115,12 +129,12 @@ struct ContentView: View {
                                 Text("\(entry.weight, specifier: "%.1f") kg")
                                     .fontWeight(.semibold)
                             }
+                            .padding(.vertical, 4)
                         }
-                        .frame(maxHeight: 200)
+                        .listStyle(PlainListStyle())
                     }
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .navigationBarHidden(true)
             .onAppear {
