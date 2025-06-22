@@ -7,13 +7,14 @@
 import SwiftUI
 import HealthKit
 
-// MARK: - Content View
 struct ContentView: View {
     @StateObject private var healthManager = HealthManager()
     @State private var currentWeight: String = ""
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var recentWeights: [WeightEntry] = []
+    @State private var thisWeekAverage: Double?
+    @State private var lastWeekAverage: Double?
     
     var body: some View {
         NavigationView {
@@ -22,6 +23,50 @@ struct ContentView: View {
                 Text("Weight Tracker")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                
+                // Weekly Averages
+                VStack(spacing: 12) {
+                    HStack(spacing: 20) {
+                        VStack {
+                            Text("This Week")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            if let avg = thisWeekAverage {
+                                Text("\(avg, specifier: "%.1f") kg")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                            } else {
+                                Text("No data")
+                                    .font(.title2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(8)
+                        
+                        VStack {
+                            Text("Last Week")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            if let avg = lastWeekAverage {
+                                Text("\(avg, specifier: "%.1f") kg")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                            } else {
+                                Text("No data")
+                                    .font(.title2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                }
+                .padding(.horizontal)
                 
                 // Current Weight Input
                 VStack(alignment: .leading, spacing: 8) {
@@ -81,6 +126,7 @@ struct ContentView: View {
             .onAppear {
                 requestHealthKitPermission()
                 loadRecentWeights()
+                loadWeeklyAverages()
             }
             .alert("Weight Tracker", isPresented: $showingAlert) {
                 Button("OK") { }
@@ -118,6 +164,7 @@ struct ContentView: View {
                     alertMessage = "Weight saved successfully!"
                     currentWeight = ""
                     loadRecentWeights()
+                    loadWeeklyAverages()
                 } else {
                     alertMessage = "Failed to save weight: \(error?.localizedDescription ?? "Unknown error")"
                 }
@@ -130,6 +177,15 @@ struct ContentView: View {
         healthManager.fetchRecentWeights { weights in
             DispatchQueue.main.async {
                 self.recentWeights = weights
+            }
+        }
+    }
+    
+    private func loadWeeklyAverages() {
+        healthManager.fetchWeeklyAverages { thisWeek, lastWeek in
+            DispatchQueue.main.async {
+                self.thisWeekAverage = thisWeek
+                self.lastWeekAverage = lastWeek
             }
         }
     }

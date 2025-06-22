@@ -66,4 +66,48 @@ class HealthManager: ObservableObject {
         
         healthStore.execute(query)
     }
+    
+    // Fetch weekly averages (Monday-Sunday weeks)
+    func fetchWeeklyAverages(completion: @escaping (Double?, Double?) -> Void) {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        // Get start of this week (Monday)
+        let thisWeekStart = calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? now
+        let adjustedThisWeekStart = calendar.date(byAdding: .day, value: calendar.firstWeekday == 1 ? 1 : 0, to: thisWeekStart) ?? thisWeekStart
+        
+        // Get start of last week
+        let lastWeekStart = calendar.date(byAdding: .weekOfYear, value: -1, to: adjustedThisWeekStart) ?? adjustedThisWeekStart
+        
+        // Fetch this week
+        fetchWeeklyAverage(from: adjustedThisWeekStart, to: now) { thisWeekAvg in
+            // Fetch last week
+            self.fetchWeeklyAverage(from: lastWeekStart, to: adjustedThisWeekStart) { lastWeekAvg in
+                completion(thisWeekAvg, lastWeekAvg)
+            }
+        }
+    }
+    
+    private func fetchWeeklyAverage(from startDate: Date, to endDate: Date, completion: @escaping (Double?) -> Void) {
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        
+        let query = HKSampleQuery(
+            sampleType: weightType,
+            predicate: predicate,
+            limit: HKObjectQueryNoLimit,
+            sortDescriptors: [sortDescriptor]
+        ) { query, samples, error in
+            guard let samples = samples as? [HKQuantitySample], !samples.isEmpty else {
+                completion(nil)
+                return
+            }
+            
+            let weights = samples.map { $0.quantity.doubleValue(for: HKUnit.gramUnit(with: .kilo)) }
+            let average = weights.reduce(0, +) / Double(weights.count)
+            completion(average)
+        }
+        
+        healthStore.execute(query)
+    }
 }
