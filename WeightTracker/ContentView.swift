@@ -19,21 +19,10 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Header
-                Text("Weight Tracker")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.top, 20)
-                    .padding(.bottom, 30)
-                
                 // Current Weight Input - Large prominent section
                 VStack(spacing: 20) {
-                    Text("Today's Weight")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    
                     HStack(spacing: 15) {
-                        TextField("Enter weight", text: $currentWeight)
+                        TextField("Enter today's weight", text: $currentWeight)
                             .keyboardType(.decimalPad)
                             .font(.title)
                             .multilineTextAlignment(.center)
@@ -48,7 +37,7 @@ struct ContentView: View {
                     }
                     
                     Button(action: saveWeight) {
-                        Text("Save Weight")
+                        Text("Record")
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
@@ -64,6 +53,7 @@ struct ContentView: View {
                 .background(Color.blue.opacity(0.05))
                 .cornerRadius(16)
                 .padding(.horizontal)
+                .padding(.top, 20)
                 
                 // Weekly Averages
                 VStack(spacing: 12) {
